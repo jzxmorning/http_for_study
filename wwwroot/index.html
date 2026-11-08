@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="登录或注册 JIAO 学习平台，开始今天的学习。">
+  <title>JIAO · 学习平台</title>
+  <link rel="stylesheet" href="/session.css">
+  <style>
+    :root { color-scheme: light; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif; color: #203c32; background: #f6f7f2; }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; min-height: 100vh; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    :focus-visible { outline: 3px solid #8bbca6; outline-offset: 4px; }
+    .shell { width: min(1100px, calc(100% - 48px)); margin: auto; }
+    header { min-height: 96px; display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid #dfe5db; }
+    .brand { display: inline-flex; align-items: center; gap: 12px; font-weight: 600; }
+    .brand-mark { display: grid; place-items: center; width: 38px; height: 38px; background: #244b3b; color: white; border-radius: 11px; font-size: 22px; font-family: Georgia, serif; }
+    .brand-name { letter-spacing: 2px; }
+    .brand-label { color: #68786d; font-size: 13px; margin-left: 4px; font-weight: 400; }
+    .nav-link { font-size: 14px; padding: 10px 0; }
+    .nav-links { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; }
+    main { min-height: calc(100vh - 162px); display: grid; grid-template-columns: 1fr 420px; align-items: center; gap: 80px; padding: 64px 0; }
+    .eyebrow { margin: 0 0 24px; color: #657a6c; font-size: 12px; letter-spacing: 3px; }
+    h1 { margin: 0; font-size: clamp(36px, 4.5vw, 56px); line-height: 1.4; font-weight: 600; letter-spacing: -1px; }
+    .intro { color: #68786d; line-height: 1.9; margin: 24px 0 0; font-size: 16px; }
+    .quote { border-left: 2px solid #b6c8b6; padding-left: 18px; margin-top: 58px; color: #788679; font-size: 14px; line-height: 1.8; }
+    .card { background: #fff; padding: 36px; border: 1px solid #e0e6dc; border-radius: 20px; box-shadow: 0 16px 48px #203c3208; scroll-margin-top: 24px; }
+    .card h2 { margin: 0 0 10px; font-size: 25px; font-weight: 600; }
+    .card-intro { margin: 0 0 30px; color: #788079; font-size: 14px; line-height: 1.7; }
+    .mode-switch { display: flex; gap: 4px; padding: 4px; margin-bottom: 28px; border-radius: 10px; background: #f0f3ec; }
+    .mode-button { flex: 1; border: 0; border-radius: 7px; min-height: 40px; background: transparent; color: #68786d; cursor: pointer; }
+    .mode-button[aria-pressed="true"] { background: #fff; color: #244b3b; font-weight: 600; box-shadow: 0 2px 6px #203c320a; }
+    .field { margin-bottom: 22px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    label { display: block; margin-bottom: 9px; font-size: 14px; font-weight: 500; }
+    input, select { width: 100%; min-width: 0; min-height: 48px; border: 1px solid #d9e1d8; border-radius: 9px; padding: 12px 14px; background: #fcfdfb; color: #203c32; }
+    input::placeholder { color: #929b91; }
+    input:focus { border-color: #477a60; }
+    .password-field { position: relative; }
+    .password-field input { padding-right: 68px; }
+    .toggle { position: absolute; top: 2px; bottom: 2px; right: 4px; border: 0; border-radius: 6px; background: transparent; padding: 0 12px; color: #536d5b; font-size: 13px; cursor: pointer; }
+    .submit { width: 100%; min-height: 48px; border: 0; border-radius: 9px; background: #244b3b; color: white; font-weight: 500; cursor: pointer; transition: background .15s; }
+    .submit:hover { background: #173b2b; }
+    .submit:disabled { opacity: .65; cursor: wait; }
+    .switch-note { margin: 20px 0 0; text-align: center; color: #788079; font-size: 13px; }
+    .switch-note a { color: #244b3b; text-decoration: underline; text-underline-offset: 3px; }
+    .status { margin: 18px 0 0; border-radius: 8px; padding: 12px; font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; }
+    .status[data-state="error"] { background: #fff1ed; color: #a03f2b; }
+    .status[data-state="success"] { background: #edf6ee; color: #24573b; }
+    .status[data-state="pending"] { background: #f3f5ef; color: #596b5e; }
+    footer { min-height: 66px; padding: 22px 0; border-top: 1px solid #dfe5db; color: #7a877a; font-size: 12px; }
+    @media (max-width: 850px) {
+      main { grid-template-columns: 1fr 380px; gap: 36px; }
+      .card { padding: 28px; }
+      .brand-label { display: none; }
+    }
+    @media (max-width: 680px) {
+      .shell { width: calc(100% - 36px); }
+      header { min-height: 76px; }
+      main { grid-template-columns: 1fr; gap: 32px; padding: 36px 0; min-height: auto; }
+      .eyebrow { margin-bottom: 14px; }
+      h1 { font-size: 36px; }
+      .intro { margin-top: 14px; font-size: 14px; }
+      .quote { display: none; }
+      .card { padding: 26px 22px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <a class="brand" href="/" aria-label="JIAO 学习平台首页">
+        <span class="brand-mark" aria-hidden="true">J</span>
+        <span class="brand-name">JIAO<span class="brand-label">学习平台</span></span>
+      </a>
+      <nav class="nav-links" aria-label="账号导航">
+        <a class="nav-link" href="#login">登录</a>
+        <a class="nav-link" href="#register">注册 ↗</a>
+        <div class="session-person" id="session-info" hidden>
+          <a class="account-link" id="user-link" href="/user.html" aria-label="查看我的个人信息">
+            <span class="account-avatar" id="session-avatar" aria-hidden="true">我</span>
+            <span class="session-name" id="session-name"></span>
+            <span class="session-role" id="session-role"></span>
+            <span aria-hidden="true">↗</span>
+          </a>
+          <button class="logout-button" id="logout-button" type="button">退出登录</button>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section aria-labelledby="welcome-title">
+        <p class="eyebrow">WELCOME TO JIAO</p>
+        <h1 id="welcome-title">从这里，<br>开始今天的学习。</h1>
+        <p class="intro">每一次练习，都是一点进步。<br>登录你的账号，继续向前。</p>
+        <p class="quote">保持好奇，认真思考。<br>把每一个小小的收获，变成自己的力量。</p>
+      </section>
+
+      <section class="card" aria-label="登录与注册">
+        <div class="active-session" id="active-session" hidden>
+          <p>你已登录，可以继续练习，也可以使用下方表单切换账号。</p>
+          <div class="account-nav">
+            <a class="continue-link" href="/questions.html">继续练习 →</a>
+          </div>
+        </div>
+        <p class="session-notice" id="session-notice" role="status" aria-live="polite" hidden></p>
+        <div class="mode-switch" role="group" aria-label="选择登录或注册">
+          <button class="mode-button" id="login-mode" type="button" aria-controls="login" aria-pressed="true">账号登录</button>
+          <button class="mode-button" id="register-mode" type="button" aria-controls="register" aria-pressed="false">注册账号</button>
+        </div>
+        <section id="login" aria-labelledby="login-title">
+        <h2 id="login-title">欢迎回来</h2>
+        <p class="card-intro">使用你的账号和密码登录。</p>
+        <form id="login-form" action="/api/login" method="post" aria-describedby="login-status">
+          <div class="field">
+            <label for="idcount">账号</label>
+            <input id="idcount" name="idcount" type="text" placeholder="请输入账号" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+          </div>
+          <div class="field">
+            <label for="idpasswd">密码</label>
+            <div class="password-field">
+              <input id="idpasswd" name="idpasswd" type="password" placeholder="请输入密码" autocomplete="current-password" required>
+              <button class="toggle" id="toggle-password" type="button" aria-controls="idpasswd" aria-label="显示密码" aria-pressed="false">显示</button>
+            </div>
+          </div>
+          <button class="submit" id="submit-button" type="submit">登录</button>
+          <p class="status" id="login-status" role="status" aria-live="polite" aria-atomic="true" hidden></p>
+        </form>
+        <p class="switch-note">还没有账号？<a href="#register">立即注册</a></p>
+        </section>
+
+        <section id="register" aria-labelledby="register-title" hidden>
+          <h2 id="register-title">创建你的账号</h2>
+          <p class="card-intro">填写以下信息，开始你的学习之旅。</p>
+          <form id="register-form" action="/api/register" method="post" aria-describedby="register-status">
+            <div class="field-row">
+              <div class="field">
+                <label for="register-name">昵称</label>
+                <input id="register-name" name="name" type="text" placeholder="怎么称呼你" autocomplete="nickname" required>
+              </div>
+              <div class="field">
+                <label for="register-identity">身份</label>
+                <select id="register-identity" name="identity" aria-describedby="identity-help" disabled>
+                  <option value="student">学生</option>
+                </select>
+              </div>
+            </div>
+            <p class="card-intro" id="identity-help">开放学生账号注册，教师账号请联系管理员。</p>
+            <div class="field">
+              <label for="register-account">账号</label>
+              <input id="register-account" name="idcount" type="text" placeholder="设置你的登录账号" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+            </div>
+            <div class="field">
+              <label for="register-password">密码</label>
+              <div class="password-field">
+                <input id="register-password" name="idpasswd" type="password" placeholder="设置你的登录密码" autocomplete="new-password" required>
+                <button class="toggle" id="toggle-register-password" type="button" aria-controls="register-password" aria-label="显示密码" aria-pressed="false">显示</button>
+              </div>
+            </div>
+            <div class="field">
+              <label for="register-confirm">确认密码</label>
+              <input id="register-confirm" name="confirm-password" type="password" placeholder="请再次输入密码" autocomplete="new-password" required>
+            </div>
+            <button class="submit" id="register-button" type="submit">注册账号</button>
+            <p class="status" id="register-status" role="status" aria-live="polite" aria-atomic="true" hidden></p>
+          </form>
+          <p class="switch-note">已有账号？<a href="#login">返回登录</a></p>
+        </section>
+        <noscript><p>请启用 JavaScript 后使用登录和注册功能。</p></noscript>
+      </section>
+    </main>
+
+    <footer>JIAO · 让学习每天发生。</footer>
+  </div>
+
+  <script src="/session.js"></script>
+  <script>
+    const form = document.getElementById('login-form');
+    const account = document.getElementById('idcount');
+    const password = document.getElementById('idpasswd');
+    const submitButton = document.getElementById('submit-button');
+    const status = document.getElementById('login-status');
+    const registerForm = document.getElementById('register-form');
+    const registerName = document.getElementById('register-name');
+    const registerAccount = document.getElementById('register-account');
+    const registerPassword = document.getElementById('register-password');
+    const registerConfirm = document.getElementById('register-confirm');
+    const registerIdentity = document.getElementById('register-identity');
+    const registerButton = document.getElementById('register-button');
+    const registerStatus = document.getElementById('register-status');
+    const loginPanel = document.getElementById('login');
+    const registerPanel = document.getElementById('register');
+    const loginMode = document.getElementById('login-mode');
+    const registerMode = document.getElementById('register-mode');
+    let pending = false;
+
+    function showStatus(target, message, state) {
+      target.textContent = message;
+      target.dataset.state = state;
+      target.hidden = false;
+    }
+
+    function syncMode(focus = false) {
+      const registering = window.location.hash === '#register';
+      loginPanel.hidden = registering;
+      registerPanel.hidden = !registering;
+      loginMode.setAttribute('aria-pressed', String(!registering));
+      registerMode.setAttribute('aria-pressed', String(registering));
+      document.title = registering ? '注册账号 · JIAO 学习平台' : 'JIAO · 学习平台';
+      if (focus) (registering ? registerName : account).focus({ preventScroll: true });
+    }
+
+    loginMode.addEventListener('click', () => { window.location.hash = 'login'; });
+    registerMode.addEventListener('click', () => { window.location.hash = 'register'; });
+    window.addEventListener('hashchange', () => syncMode(true));
+    syncMode();
+    const reason = new URLSearchParams(window.location.search).get('reason');
+    if (reason === 'expired') showStatus(status, '登录已失效，请重新登录。', 'error');
+    if (reason === 'logout') showStatus(status, '你已安全退出登录。', 'success');
+    JiaoSession.init();
+
+    function bindPasswordToggle(buttonId, input) {
+      const button = document.getElementById(buttonId);
+      button.addEventListener('click', () => {
+        const reveal = input.type === 'password';
+        input.type = reveal ? 'text' : 'password';
+        button.textContent = reveal ? '隐藏' : '显示';
+        button.setAttribute('aria-label', reveal ? '隐藏密码' : '显示密码');
+        button.setAttribute('aria-pressed', String(reveal));
+      });
+    }
+    bindPasswordToggle('toggle-password', password);
+    bindPasswordToggle('toggle-register-password', registerPassword);
+
+    async function submitJson(url, payload, targetForm, button, targetStatus, action, onSuccess) {
+      pending = true;
+      submitButton.disabled = true;
+      registerButton.disabled = true;
+      const originalLabel = button.textContent;
+      button.textContent = `正在${action}…`;
+      targetForm.setAttribute('aria-busy', 'true');
+      showStatus(targetStatus, `正在${action}，请稍候…`, 'pending');
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(payload),
+          signal: controller.signal
+        });
+
+        let data;
+        try {
+          data = await response.json();
+        } catch (error) {
+          if (error.name === 'AbortError') throw error;
+          showStatus(targetStatus, '服务响应异常，请稍后重试。', 'error');
+          return;
+        }
+
+        if (!data || typeof data !== 'object' || Array.isArray(data)) {
+          showStatus(targetStatus, '服务响应异常，请稍后重试。', 'error');
+          return;
+        }
+        const success = response.ok && data.success !== false;
+        const message = typeof data.message === 'string' && data.message
+          ? data.message
+          : (success ? `${action}成功。` : `${action}失败，请稍后重试。`);
+        showStatus(targetStatus, message, success ? 'success' : 'error');
+        if (success) onSuccess();
+      } catch (error) {
+        showStatus(targetStatus, error.name === 'AbortError'
+          ? (action === '注册' ? '请求超时，请先尝试登录，确认是否注册成功。' : '请求超时，请稍后重试。')
+          : '暂时无法连接服务，请检查网络后重试。', 'error');
+      } finally {
+        clearTimeout(timeout);
+        pending = false;
+        submitButton.disabled = false;
+        registerButton.disabled = false;
+        button.textContent = originalLabel;
+        targetForm.removeAttribute('aria-busy');
+      }
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (pending || !form.reportValidity()) return;
+      const idcount = account.value.trim();
+      const idpasswd = password.value;
+      if (!idcount) {
+        showStatus(status, '请输入账号。', 'error');
+        account.focus();
+        return;
+      }
+      await submitJson('/api/login', { idcount, idpasswd }, form, submitButton, status, '登录', () => {
+        password.value = '';
+        window.location.assign('/questions.html');
+      });
+    });
+
+    registerConfirm.addEventListener('input', () => registerConfirm.setCustomValidity(''));
+    registerPassword.addEventListener('input', () => registerConfirm.setCustomValidity(''));
+
+    registerForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (pending) return;
+      registerConfirm.setCustomValidity(registerPassword.value === registerConfirm.value
+        ? '' : '两次输入的密码不一致');
+      if (!registerForm.reportValidity()) return;
+
+      const payload = {
+        name: registerName.value.trim(),
+        idcount: registerAccount.value.trim(),
+        idpasswd: registerPassword.value,
+        identity: registerIdentity.value
+      };
+      if (!payload.name || !payload.idcount) {
+        showStatus(registerStatus, '请输入昵称和账号。', 'error');
+        (!payload.name ? registerName : registerAccount).focus();
+        return;
+      }
+      await submitJson('/api/register', payload, registerForm, registerButton, registerStatus, '注册', () => {
+        registerPassword.value = '';
+        registerConfirm.value = '';
+        if (!registerPanel.hidden) {
+          account.value = payload.idcount;
+          password.value = '';
+          showStatus(status, '注册成功，请使用新账号登录。', 'success');
+          window.location.hash = 'login';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

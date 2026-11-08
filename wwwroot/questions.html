@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="查看 JIAO 学习平台的题目列表。">
+  <title>题目列表 · JIAO 学习平台</title>
+  <link rel="stylesheet" href="/session.css">
+  <link rel="stylesheet" href="/progress.css">
+  <style>
+    :root { color-scheme: light; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif; color: #203c32; background: #f6f7f2; }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; min-height: 100vh; }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; }
+    :focus-visible { outline: 3px solid #8bbca6; outline-offset: 4px; }
+    .shell { width: min(1100px, calc(100% - 48px)); margin: auto; }
+    header { min-height: 96px; display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid #dfe5db; }
+    .brand { display: inline-flex; align-items: center; gap: 12px; font-weight: 600; }
+    .brand-mark { display: grid; place-items: center; width: 38px; height: 38px; background: #244b3b; color: white; border-radius: 11px; font-size: 22px; font-family: Georgia, serif; }
+    .brand-name { letter-spacing: 2px; }
+    .brand-label { color: #68786d; font-size: 13px; margin-left: 4px; font-weight: 400; }
+    .nav-link { font-size: 14px; padding: 10px 0; }
+    main { min-height: calc(100vh - 162px); padding: 54px 0 64px; }
+    .eyebrow { margin: 0 0 14px; color: #657a6c; font-size: 12px; letter-spacing: 3px; }
+    h1 { margin: 0; font-size: clamp(30px, 4vw, 42px); line-height: 1.4; font-weight: 600; }
+    .intro { margin: 14px 0 36px; color: #68786d; font-size: 15px; line-height: 1.8; }
+    .card { overflow: hidden; background: #fff; border: 1px solid #e0e6dc; border-radius: 16px; box-shadow: 0 16px 48px #203c3208; }
+    .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 20px 26px; border-bottom: 1px solid #e6ebe2; }
+    .list-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px; }
+    h2 { margin: 0; font-size: 18px; font-weight: 600; }
+    .count { margin: 0; color: #788079; font-size: 13px; }
+    .search-field { display: block; padding: 20px 26px 0; color: #68786d; font-size: 13px; }
+    .search-field input { display: block; width: 100%; margin-top: 10px; padding: 12px 14px; border: 1px solid #d9e1d8; border-radius: 8px; color: #203c32; background: #fcfdfb; font: inherit; font-size: 14px; }
+    .list-filters { display: grid; grid-template-columns: minmax(0, 1fr) 180px; gap: 18px; padding: 20px 26px 0; }
+    .list-filters .search-field { padding: 0; }
+    .list-filters select { width: 100%; min-height: 43px; margin-top: 10px; padding: 10px; border: 1px solid #d9e1d8; border-radius: 8px; background: #fcfdfb; color: #203c32; font: inherit; font-size: 14px; }
+    .status-field { color: #68786d; font-size: 13px; }
+    .table-scroll { overflow-x: auto; }
+    .table-scroll table { min-width: 720px; }
+    .status-column { width: 116px; }
+    .attempt-column { width: 112px; }
+    .question-history { margin: 10px 0 0; font-size: 12px; line-height: 1.8; color: #788079; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .attempt-detail { display: block; color: #788079; font-size: 12px; }
+    .refresh { flex-shrink: 0; min-height: 40px; padding: 9px 16px; border: 1px solid #cdd9cc; border-radius: 8px; background: #fff; color: #244b3b; font-size: 14px; cursor: pointer; }
+    .refresh:hover { background: #f0f5ed; }
+    .refresh:disabled { opacity: .6; cursor: wait; }
+    .message { padding: 54px 24px; margin: 0; text-align: center; color: #68786d; line-height: 1.8; overflow-wrap: anywhere; }
+    .message[data-state="error"] { color: #a03f2b; background: #fff8f5; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; text-align: left; }
+    .id-column { width: 76px; }
+    .grade-column { width: 76px; }
+    th { padding: 15px 26px; background: #f7f9f4; color: #697a6b; font-size: 13px; font-weight: 500; }
+    td { padding: 22px 26px; border-top: 1px solid #edf0e9; vertical-align: top; font-size: 14px; line-height: 1.8; }
+    .question-id { color: #7b8a7d; font-variant-numeric: tabular-nums; }
+    .question-title { white-space: pre-wrap; overflow-wrap: anywhere; }
+    .question-link { display: block; color: #244b3b; text-decoration: underline; text-decoration-color: #b7cab9; text-underline-offset: 4px; }
+    .question-link:hover { color: #157046; text-decoration-color: currentColor; }
+    .question-grade { text-align: right; color: #315e43; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    th:last-child { text-align: right; }
+    footer { min-height: 66px; padding: 22px 0; border-top: 1px solid #dfe5db; color: #7a877a; font-size: 12px; }
+    @media (max-width: 680px) {
+      .shell { width: calc(100% - 32px); }
+      header { min-height: 76px; }
+      .brand-label { display: none; }
+      main { min-height: calc(100vh - 142px); padding: 36px 0; }
+      .intro { margin-bottom: 26px; }
+      .toolbar { padding: 18px 16px; }
+      .list-heading { gap: 6px 10px; }
+      .list-filters { grid-template-columns: minmax(0, 1fr) 130px; gap: 12px; padding: 18px 16px 0; }
+      .id-column { width: 70px; }
+      .grade-column { width: 72px; }
+      th { padding: 13px 12px; }
+      td { padding: 18px 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <a class="brand" href="/" aria-label="JIAO 学习平台首页">
+        <span class="brand-mark" aria-hidden="true">J</span>
+        <span class="brand-name">JIAO<span class="brand-label">学习平台</span></span>
+      </a>
+      <nav class="account-nav" aria-label="账号导航">
+        <a class="nav-link" href="/">首页</a>
+        <div class="session-person" id="session-info" hidden>
+          <a class="account-link" id="user-link" href="/user.html" aria-label="查看我的个人信息">
+            <span class="account-avatar" id="session-avatar" aria-hidden="true">我</span>
+            <span class="session-name" id="session-name"></span>
+            <span class="session-role" id="session-role"></span>
+            <span aria-hidden="true">↗</span>
+          </a>
+          <button class="logout-button" id="logout-button" type="button">退出登录</button>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <p class="session-notice" id="session-notice" role="status" aria-live="polite" hidden></p>
+      <p class="eyebrow">KEEP LEARNING</p>
+      <h1>题目列表</h1>
+      <p class="intro">每一道题，都是一次思考的机会。点击题目，查看完整题干和选项。</p>
+
+      <dl class="study-summary" id="progress-summary" aria-label="当前题库练习概况" hidden>
+        <div class="study-stat"><dt>已练习 / 全部题目</dt><dd id="summary-attempted">—</dd></div>
+        <div class="study-stat"><dt>总提交次数</dt><dd id="summary-submissions">—</dd></div>
+        <div class="study-stat"><dt>提交正确率</dt><dd id="summary-accuracy">—</dd></div>
+        <div class="study-stat"><dt>最近答错的题目</dt><dd id="summary-incorrect">—</dd></div>
+      </dl>
+
+      <section class="card" aria-labelledby="list-title">
+        <div class="list-filters">
+        <label class="search-field" for="question-search">查找题目
+          <input id="question-search" type="search" placeholder="输入题目编号或关键词" autocomplete="off" disabled>
+        </label>
+        <label class="status-field" for="status-filter">作答状态
+          <select id="status-filter" disabled>
+            <option value="all">全部题目</option>
+            <option value="unattempted">未作答</option>
+            <option value="correct">最近答对</option>
+            <option value="incorrect">最近答错</option>
+            <option value="attempted">全部已作答</option>
+          </select>
+        </label>
+        </div>
+        <div class="toolbar">
+          <div class="list-heading">
+            <h2 id="list-title">全部题目</h2>
+            <p class="count" id="question-count" role="status" aria-live="polite">正在加载…</p>
+          </div>
+          <div class="progress-actions">
+            <button class="save-progress" id="save-progress" type="button" aria-describedby="save-status">保存记录</button>
+            <button class="refresh" id="refresh-button" type="button">刷新列表</button>
+          </div>
+        </div>
+        <p class="save-status" id="save-status" role="status" aria-live="polite" aria-atomic="true" hidden></p>
+        <div id="list-content" aria-busy="true">
+          <p class="message" id="list-message" role="status" aria-live="polite" aria-atomic="true">正在加载题目，请稍候…</p>
+          <div class="table-scroll" role="region" aria-label="题目与作答记录，可横向滚动" tabindex="0">
+          <table id="question-table" aria-labelledby="list-title" hidden>
+            <colgroup><col class="id-column"><col><col class="status-column"><col class="attempt-column"><col class="grade-column"></colgroup>
+            <thead><tr><th scope="col">编号</th><th scope="col">题目 / 最近作答</th><th scope="col">状态</th><th scope="col">提交次数</th><th scope="col">分值</th></tr></thead>
+            <tbody id="question-rows"></tbody>
+          </table>
+          </div>
+        </div>
+      </section>
+      <p class="practice-note">新增作答后请点击“保存记录”，退出或登录失效前记得保存。</p>
+      <noscript><p>请启用 JavaScript 后查看题目列表。</p></noscript>
+    </main>
+
+    <footer>JIAO · 让学习每天发生。</footer>
+  </div>
+
+  <script src="/session.js"></script>
+  <script src="/progress.js"></script>
+  <script>
+    const refreshButton = document.getElementById('refresh-button');
+    const count = document.getElementById('question-count');
+    const content = document.getElementById('list-content');
+    const message = document.getElementById('list-message');
+    const table = document.getElementById('question-table');
+    const rows = document.getElementById('question-rows');
+    const search = document.getElementById('question-search');
+    const statusFilter = document.getElementById('status-filter');
+    const initialStatus = new URLSearchParams(window.location.search).get('status');
+    statusFilter.value = ['unattempted', 'correct', 'incorrect', 'attempted'].includes(initialStatus) ? initialStatus : 'all';
+    let allQuestions = [];
+    let listReady = false;
+
+    function showMessage(text, state) {
+      message.textContent = text;
+      message.dataset.state = state;
+      message.hidden = false;
+      table.hidden = true;
+    }
+
+    function renderQuestions(questions) {
+      const fragment = document.createDocumentFragment();
+      for (const question of questions) {
+        const row = document.createElement('tr');
+        const id = document.createElement('td');
+        const title = document.createElement('td');
+        const link = document.createElement('a');
+        const grade = document.createElement('td');
+        const state = document.createElement('td');
+        const badge = document.createElement('span');
+        const attempts = document.createElement('td');
+        const correctCount = document.createElement('span');
+        id.className = 'question-id';
+        title.className = 'question-title';
+        grade.className = 'question-grade';
+        id.textContent = question.id;
+        link.className = 'question-link';
+        link.href = `/question.html?id=${encodeURIComponent(question.id)}`;
+        link.textContent = question.title || `查看第 ${question.id} 题`;
+        title.append(link);
+        if (question.attempt > 0) {
+          const history = document.createElement('p');
+          history.className = 'question-history';
+          history.textContent = `最近答案：${question.lastAnswer || '未提供'}\n最近作答：${question.lastTime}`;
+          title.append(history);
+        }
+        badge.className = 'progress-badge';
+        badge.dataset.state = question.state;
+        badge.textContent = question.status;
+        state.append(badge);
+        attempts.textContent = `${question.attempt} 次`;
+        correctCount.className = 'attempt-detail';
+        correctCount.textContent = `答对 ${question.correctCount} 次`;
+        attempts.append(correctCount);
+        grade.textContent = question.grade;
+        row.append(id, title, state, attempts, grade);
+        fragment.append(row);
+      }
+      rows.replaceChildren(fragment);
+      count.textContent = search.value.trim() || statusFilter.value !== 'all'
+        ? `找到 ${questions.length} / ${allQuestions.length} 道题` : `共 ${questions.length} 道题`;
+      if (questions.length === 0) {
+        showMessage(search.value.trim() || statusFilter.value !== 'all' ? '没有匹配的题目，试试其他关键词或作答状态。'
+          : '暂时还没有题目，稍后再来看看吧。', 'empty');
+      } else {
+        message.hidden = true;
+        table.hidden = false;
+      }
+    }
+
+    async function loadQuestions() {
+      if (refreshButton.disabled) return;
+      refreshButton.disabled = true;
+      search.disabled = true;
+      statusFilter.disabled = true;
+      document.getElementById('progress-summary').hidden = true;
+      allQuestions = [];
+      listReady = false;
+      refreshButton.textContent = '正在加载…';
+      content.setAttribute('aria-busy', 'true');
+      count.textContent = '正在加载…';
+      showMessage('正在加载题目，请稍候…', 'pending');
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
+      try {
+        const response = await fetch('/api/allquestions', {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' },
+          cache: 'no-store',
+          signal: controller.signal
+        });
+
+        if (JiaoSession.redirectIfUnauthorized(response)) return;
+
+        let data;
+        try {
+          data = await response.json();
+        } catch (error) {
+          if (error.name === 'AbortError') throw error;
+          count.textContent = '暂未加载';
+          showMessage('服务响应异常，请点击“刷新列表”重试。', 'error');
+          return;
+        }
+
+        if (!response.ok || !data || data.success === false) {
+          const detail = data && typeof data.message === 'string' && data.message
+            ? data.message : '获取题目列表失败，请点击“刷新列表”重试。';
+          count.textContent = '暂未加载';
+          showMessage(detail, 'error');
+          return;
+        }
+
+        if (!Array.isArray(data.questions) || !data.questions.every(question =>
+          question && Number.isInteger(question.id) && typeof question.title === 'string' &&
+          (typeof question.grade === 'string' || typeof question.grade === 'number'))) {
+          count.textContent = '暂未加载';
+          showMessage('题目数据格式异常，请稍后重试。', 'error');
+          return;
+        }
+        allQuestions = JiaoProgress.normalizeQuestions(data.questions);
+        listReady = true;
+        const stats = JiaoProgress.summarize(allQuestions);
+        document.getElementById('summary-attempted').textContent = `${stats.attempted} / ${stats.total}`;
+        document.getElementById('summary-submissions').textContent = stats.submissions;
+        document.getElementById('summary-accuracy').textContent = stats.accuracy;
+        document.getElementById('summary-incorrect').textContent = stats.incorrect;
+        document.getElementById('progress-summary').hidden = false;
+        filterQuestions();
+      } catch (error) {
+        count.textContent = '暂未加载';
+        showMessage(error.name === 'AbortError'
+          ? '加载超时，请点击“刷新列表”重试。'
+          : (error.name === 'TypeError' ? '暂时无法连接服务，请检查网络后重试。' : error.message), 'error');
+      } finally {
+        clearTimeout(timeout);
+        refreshButton.disabled = false;
+        search.disabled = !listReady;
+        statusFilter.disabled = !listReady;
+        refreshButton.textContent = '刷新列表';
+        content.setAttribute('aria-busy', 'false');
+      }
+    }
+
+    function filterQuestions() {
+      const keyword = search.value.trim().toLocaleLowerCase();
+      const state = statusFilter.value || 'all';
+      renderQuestions(allQuestions.filter(question =>
+        (String(question.id).includes(keyword) || question.title.toLocaleLowerCase().includes(keyword)) &&
+        (state === 'all' || question.state === state || (state === 'attempted' && question.attempt > 0))));
+    }
+    search.addEventListener('input', filterQuestions);
+    statusFilter.addEventListener('change', filterQuestions);
+    JiaoSession.init({ required: true });
+    JiaoProgress.bindSaveButton({ onSaved: loadQuestions });
+    refreshButton.addEventListener('click', loadQuestions);
+    loadQuestions();
+  </script>
+</body>
+</html>

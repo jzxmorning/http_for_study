@@ -1,0 +1,26 @@
+.study-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 0 0 28px; }
+.study-stat { padding: 22px; border: 1px solid #e0e6dc; border-radius: 14px; background: #fff; }
+.study-stat dt { color: #788079; font-size: 13px; line-height: 1.7; }
+.study-stat dd { margin: 10px 0 0; color: #244b3b; font-size: 28px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.progress-badge { display: inline-block; padding: 4px 10px; border-radius: 6px; color: #68786d; background: #f0f3ec; font-size: 12px; white-space: nowrap; }
+.progress-badge[data-state="correct"] { color: #24573b; background: #edf6ee; }
+.progress-badge[data-state="incorrect"] { color: #825b20; background: #fff3df; }
+.progress-badge[data-state="attempted"] { color: #506c84; background: #edf3f9; }
+.practice-note { margin: 18px 0 24px; color: #788079; font-size: 13px; line-height: 1.8; }
+.progress-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.save-progress { min-height: 40px; padding: 9px 16px; border: 1px solid #244b3b; border-radius: 8px; background: #244b3b; color: #fff; font: inherit; font-size: 14px; cursor: pointer; }
+.save-progress:hover { background: #173b2b; }
+.save-progress:disabled { opacity: .65; cursor: wait; }
+.save-status { margin: 16px 0; padding: 12px 16px; border-radius: 8px; color: #596b5e; background: #f3f5ef; font-size: 14px; line-height: 1.8; overflow-wrap: anywhere; }
+.save-status[data-state="success"] { background: #edf6ee; color: #24573b; }
+.save-status[data-state="error"] { background: #fff1ed; color: #a03f2b; }
+.progress-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 24px; margin: 22px 0 0; }
+.progress-fields dt { color: #788079; font-size: 13px; }
+.progress-fields dd { margin: 6px 0 0; font-size: 15px; line-height: 1.8; overflow-wrap: anywhere; white-space: pre-wrap; }
+.progress-feedback { margin: 16px 0; color: #788079; font-size: 14px; line-height: 1.8; }
+.progress-feedback[data-state="error"] { color: #a03f2b; }
+@media (max-width: 680px) {
+  .study-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .study-stat { padding: 18px 16px; }
+  .study-stat dd { font-size: 25px; }
+}

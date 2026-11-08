@@ -1,0 +1,19 @@
+.account-nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px 18px; font-size: 14px; }
+.session-person { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; min-width: 0; }
+.session-name { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.session-role { padding: 3px 8px; border-radius: 5px; background: #eaf0e4; color: #536d5b; font-size: 12px; }
+.account-link { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; min-height: 44px; padding: 6px 10px; border: 1px solid #dce5d8; border-radius: 24px; background: #fff; color: #244b3b; font: inherit; text-decoration: none; }
+.account-link:hover, .account-link[aria-current="page"] { background: #edf3e8; border-color: #b6cbb4; }
+.account-avatar { display: grid; place-items: center; flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; background: #244b3b; color: #fff; font-size: 14px; }
+.logout-button { min-height: 38px; padding: 8px 12px; border: 1px solid #cdd9cc; border-radius: 8px; background: #fff; color: #315e43; cursor: pointer; font: inherit; font-size: 13px; }
+.logout-button:disabled { opacity: .6; cursor: wait; }
+.session-notice { margin: 16px 0; padding: 12px 16px; border-radius: 8px; background: #fff1ed; color: #a03f2b; font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; }
+.active-session { margin-bottom: 24px; padding: 18px; border: 1px solid #dce5d8; border-radius: 10px; background: #f4f7f0; }
+.active-session p { margin: 0 0 14px; font-size: 14px; }
+.active-session .account-nav { justify-content: flex-start; }
+.continue-link { color: #244b3b; text-decoration: underline; text-underline-offset: 4px; font-size: 14px; }
+@media (max-width: 680px) {
+  header { flex-wrap: wrap; padding: 16px 0; }
+  .account-nav { gap: 8px 12px; }
+  .session-name { max-width: 110px; }
+}
