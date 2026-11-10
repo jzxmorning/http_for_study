@@ -1,12 +1,14 @@
 #include "http.hpp"
-#include "Mysql.hpp"
+#include "../MYSQL/Mysql.hpp"
 #include <jsoncpp/json/json.h>
 #include <sstream>
-#include "session.hpp"
+#include "../Comm/session.hpp"
+#include"../Comm/Util.hpp"
+#include <filesystem>
 MutexModule::Mutex mysql_mutex;
 
 Sessionid session_manger;
-
+#define COMMEN_PATH "./wwwroot/avaters/commen_path.png"
 // Cookie 属于 HTTP 层，按分号分项、按第一个等号分离名称和值。
 std::string GetCookie(const HTTPRequest &req, const std::string &name)
 {
@@ -24,7 +26,6 @@ std::string GetCookie(const HTTPRequest &req, const std::string &name)
     }
     return "";
 }
-
 void SetCookie(HttpResponse *rsp, const std::string &id)
 {
     rsp->SetHeader("Set-Cookie", "sessionid=" + id +
@@ -171,11 +172,22 @@ void HandleLogIn(const HTTPRequest &req, HttpResponse *rsp, MySQL *mysql)
 
     // 5. 将新编号写入 Cookie
     SetCookie(rsp, new_sessionid);
-
+    
     // 6.构建响应
     Json::Value body;
+    //获取自己的头像地址
+    int id = u.id;
+    //./wwwroot/avaters
+    std::string path = "./wwwroot/avaters/"+std::to_string(id)+".png";
+    bool reto = IsFileExists(path);
+    if(reto == false)
+    {
+        //头像路径不存在，就用一个通用的头像
+        path = COMMEN_PATH;
+    }
     body["success"] = true;
     body["message"] = "登录成功";
+    body["avatar"]=path;
     Reply(rsp, 200, body);
 }
 void HandelRegister(const HTTPRequest &req, HttpResponse *rsp, MySQL *mysql)
@@ -389,6 +401,15 @@ void HandleShowUser(const HTTPRequest &req, HttpResponse *rsp)
         user["idcount"] = session->GetUsername();  // 登录账号
         user["name"] = session->GetName();         // 昵称
         user["identity"] = session->GetIdentity(); // 身份
+        std::string filename;
+        if(IsFileExists(MakeFileName(session->GetUserId()))==false)
+        {
+          filename=COMMEN_PATH;
+        }else
+        {
+            filename = MakeFileName(session->GetUserId());
+        }
+        user["avater"]=filename;
         root["user"] = user;
         Reply(rsp, 200, root);
     }
@@ -438,6 +459,44 @@ void SaveProgress(const HTTPRequest &req, HttpResponse *rsp, MySQL *mysql)
 
     Reply(rsp, 200, body);
 }
+#define  MAX_AVATAR_SIZE 10 * 1024 * 1024 
+void HandleLoadAvaters(const HTTPRequest &req, HttpResponse *rsp)
+{
+    session_ptr u=RequireLogin(req,rsp);
+    if(u==nullptr)
+    {
+        return;
+    }
+    if (req._body.empty())
+    {
+        ReplyError(rsp, 400, "请先选择图片");
+        return;
+    }
+    if (req._body.size() > MAX_AVATAR_SIZE)
+    {
+        ReplyError(rsp, 413, "图片不能超过 10 MB");
+        return;
+    }
+    if (req.GetHeader("Content-Type") != "image/png" || !HasPngHeader(req._body))
+    {
+        ReplyError(rsp, 415, "请选择尺寸不超过 2048 × 2048 的 PNG 图片");
+        return;
+    }
+    std::string filename = MakeFileName(u->GetUserId());
+   bool ret =  WriteFile(filename,req._body);
+   if(ret == false)
+   {
+    ReplyError(rsp,500,"创建头像失败");
+    return;
+   }else
+   {
+      Json::Value v;
+      v["success"]=true;
+      v["message"]="创建头像成功";
+      Reply(rsp,200,v);
+      return;
+   }
+}
 int main()
 {
     MySQL my;
@@ -448,6 +507,7 @@ int main()
     server.SetBaseDir("./wwwroot");
     server.Get("/api/me", HandleShowUser);
     server.Get("/api/showuser", HandleShowUser);
+    server.Post("/api/avatar", HandleLoadAvaters);
     server.Post("/api/progress/save", [&my](const HTTPRequest &req, HttpResponse *rsp)
                 { SaveProgress(req, rsp, &my); });
     server.Post("/api/logout", HandleLogout);

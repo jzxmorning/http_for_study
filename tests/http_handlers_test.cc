@@ -1,5 +1,5 @@
 // 使用内存中的数据库替身验证实际处理函数，不连接或修改真实 MySQL。
-#include "../Mysql.hpp"
+#include "../MYSQL/Mysql.hpp"
 #include <algorithm>
 #include <cassert>
 #include <iostream>
@@ -80,7 +80,7 @@ public:
 
 #define MySQL TestMySQL
 #define main ProductionMain
-#include "../http.cc"
+#include "../Server/http.cc"
 #undef main
 #undef MySQL
 
@@ -113,6 +113,7 @@ int main(int argc, char **argv)
         server.SetBaseDir("./wwwroot");
         server.Get("/api/me", HandleShowUser);
         server.Get("/api/showuser", HandleShowUser);
+        server.Post("/api/avatar", HandleLoadAvaters);
         server.Post("/api/progress/save", [&](const HTTPRequest &r, HttpResponse *s) { SaveProgress(r, s, &db); });
         server.Post("/api/logout", HandleLogout);
         server.Post("/api/login", [&](const HTTPRequest &r, HttpResponse *s) { HandleLogIn(r, s, &db); });

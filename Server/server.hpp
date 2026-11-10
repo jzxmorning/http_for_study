@@ -1,5 +1,5 @@
 #pragma once
-#include "Log.hpp"
+#include "../Comm/Log.hpp"
 #include <vector>
 #include <iostream>
 #include <signal.h>

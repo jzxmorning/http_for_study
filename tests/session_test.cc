@@ -1,7 +1,7 @@
 #include <cstdint>
 #include <ctime>
-#include "../userandquestions.hpp"
-#include "../session.hpp"
+#include "../Comm/userandquestions.hpp"
+#include "../Comm/session.hpp"
 #include <cassert>
 #include <iostream>
 #include <regex>

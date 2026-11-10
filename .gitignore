@@ -6,6 +6,7 @@
 
 # 编译产物
 /http
+/Server/http
 /session_demo
 *.o
 *.d

@@ -28,6 +28,7 @@ class Element {
   }
   replaceChildren(...children) { this.children = []; this.append(...children); }
   focus() { this.focused = true; }
+  click() { return this.emit('click'); }
   setCustomValidity(value) { this.validation = value; }
   reportValidity() { return true; }
   async emit(name, event = {}) {
@@ -62,8 +63,30 @@ async function openPage(file, overrides = {}) {
   }
   if (elements.has('register-identity')) elements.get('register-identity').value = 'student';
   const calls = [], navigations = [], windowEvents = {}, documentEvents = {};
+  const objectUrls = new Map();
+  let nextObjectUrl = 0;
+  class TestImage extends Element {
+    constructor() {
+      super();
+      this.naturalWidth = overrides.imageWidth ?? 128;
+      this.naturalHeight = overrides.imageHeight ?? 128;
+    }
+    set src(value) {
+      this._src = value;
+      Promise.resolve().then(() => overrides.imageError ? this.onerror() : this.onload());
+    }
+    get src() { return this._src; }
+  }
   const sandbox = {
-    URLSearchParams, AbortController, clearTimeout, console,
+    URLSearchParams, AbortController, clearTimeout, console, Image: TestImage,
+    URL: {
+      createObjectURL: file => {
+        const url = 'blob:test-' + (++nextObjectUrl);
+        objectUrls.set(url, file);
+        return url;
+      },
+      revokeObjectURL: url => objectUrls.delete(url)
+    },
     setTimeout: (callback, delay) => {
       if (overrides.timers) overrides.timers.push(callback);
       return setTimeout(callback, delay);
@@ -101,7 +124,7 @@ async function openPage(file, overrides = {}) {
       : script, sandbox);
   }
   await settle();
-  return { get: id => elements.get(id), calls, navigations, sandbox, windowEvents,
+  return { get: id => elements.get(id), calls, navigations, sandbox, windowEvents, objectUrls,
     emitDocument: async (name, event) => {
       for (const callback of documentEvents[name] || []) await callback({ preventDefault() {}, ...event });
     } };
@@ -389,5 +412,97 @@ async function openPage(file, overrides = {}) {
   await timedSave;
   assert(page.get('save-status').textContent.includes('结果尚未确认'));
   assert(!page.get('save-progress').disabled && !page.get('logout-button').disabled);
-  console.log('Frontend: progress display, save buttons, duplicate protection, retry, timeout and auth passed');
+  const png = { name: '我的头像.png', size: 1024, type: 'image/png' };
+  const selectAvatar = async (target, file = png) => {
+    target.get('avatar-file').files = [file];
+    await target.get('avatar-file').emit('change');
+  };
+  page = await openPage('user.html');
+  assert(page.get('session-avatar').children[0].src.startsWith('/avaters/commen_path.png'));
+  assert.equal(page.sandbox.JiaoSession.avatarUrl({ avater: './wwwroot/avaters/42.png' }), '/avaters/42.png');
+  assert.equal(page.sandbox.JiaoSession.avatarUrl({ avatar: '/avaters/42.png' }), '/avaters/42.png');
+  assert.equal(page.sandbox.JiaoSession.avatarUrl({ avater: 'https://example.com/tracker.png' }), '/avaters/commen_path.png');
+  assert.equal(page.sandbox.JiaoSession.avatarUrl({ avater: '/avaters/../42.png' }), '/avaters/commen_path.png');
+  const headerImage = page.get('session-avatar').children[0];
+  headerImage.onerror();
+  assert.equal(headerImage.src, '/avaters/commen_path.png');
+  assert.equal(headerImage.onerror, null);
+  for (const file of [{ ...png, type: 'image/jpeg' }, { ...png, size: 0 }, { ...png, size: 10 * 1024 * 1024 + 1 }]) {
+    await selectAvatar(page, file);
+    assert.equal(page.get('avatar-status').dataset.state, 'error');
+    assert(page.get('avatar-save').disabled);
+    assert(!page.calls.some(call => call.url === '/api/avatar'));
+  }
+  await selectAvatar(page, { ...png, size: 10 * 1024 * 1024 });
+  assert.equal(page.get('user-avatar').dataset.preview, 'true');
+  assert(!page.get('avatar-actions').hidden && !page.get('avatar-save').disabled);
+  assert.equal(page.objectUrls.size, 1);
+  await page.get('avatar-cancel').emit('click');
+  assert.equal(page.objectUrls.size, 0);
+  assert(page.get('avatar-actions').hidden);
+  assert(page.get('user-avatar').children[0].src.startsWith('/avaters/commen_path.png'));
+
+  for (const overrides of [{ imageWidth: 2049 }, { imageHeight: 2049 }, { imageError: true }]) {
+    page = await openPage('user.html', overrides);
+    await selectAvatar(page);
+    assert.equal(page.get('avatar-status').dataset.state, 'error');
+    assert(page.get('avatar-save').disabled);
+    assert.equal(page.objectUrls.size, 0);
+  }
+
+  let finishUpload;
+  let uploaded = false;
+  page = await openPage('user.html', { fetch: url => {
+    if (url === '/api/avatar') return new Promise(resolve => { finishUpload = resolve; });
+    if (url === '/api/showuser') return response(200, { success: true,
+      user: { ...user, avater: uploaded ? './wwwroot/avaters/42.png' : './wwwroot/avaters/commen_path.png' } });
+  } });
+  await selectAvatar(page);
+  const uploading = page.get('avatar-form').emit('submit');
+  await settle();
+  assert(page.get('avatar-choose').disabled && page.get('avatar-save').disabled);
+  await page.get('avatar-form').emit('submit');
+  assert.equal(page.calls.filter(call => call.url === '/api/avatar').length, 1);
+  const uploadCall = page.calls.find(call => call.url === '/api/avatar');
+  assert.equal(uploadCall.options.body, png);
+  assert.equal(uploadCall.options.headers['Content-Type'], 'image/png');
+  assert.equal(uploadCall.options.credentials, 'same-origin');
+  uploaded = true;
+  finishUpload(response(200, { success: true }));
+  await uploading;
+  assert.equal(page.get('avatar-status').dataset.state, 'success');
+  assert(page.get('session-avatar').children[0].src.startsWith('/avaters/42.png?v='));
+  assert(page.get('user-avatar').children[0].src.startsWith('/avaters/42.png?v='));
+  assert(page.get('avatar-actions').hidden && !page.get('avatar-choose').disabled);
+  assert.equal(page.objectUrls.size, 0);
+
+  let failUpload = true;
+  page = await openPage('user.html', { fetch: url => url === '/api/avatar' &&
+    response(failUpload ? 500 : 200, failUpload ? { success: false, message: '创建头像失败' } : { success: true }) });
+  await selectAvatar(page);
+  await page.get('avatar-form').emit('submit');
+  assert.equal(page.get('avatar-status').textContent, '创建头像失败');
+  assert(!page.get('avatar-save').disabled);
+  failUpload = false;
+  await page.get('avatar-form').emit('submit');
+  assert.equal(page.get('avatar-status').dataset.state, 'success');
+
+  page = await openPage('user.html', { fetch: url => url === '/api/avatar' && response(401, { success: false }) });
+  await selectAvatar(page);
+  await page.get('avatar-form').emit('submit');
+  assert.deepEqual(page.navigations, ['/index.html?reason=expired#login']);
+  const avatarTimers = [];
+  page = await openPage('user.html', { timers: avatarTimers, fetch: (url, options) => {
+    if (url === '/api/avatar') return new Promise((_, reject) => {
+      options.signal.addEventListener('abort', () => reject(Object.assign(new Error('timeout'), { name: 'AbortError' })));
+    });
+  } });
+  await selectAvatar(page);
+  const slowUpload = page.get('avatar-form').emit('submit');
+  await settle();
+  avatarTimers[avatarTimers.length - 1]();
+  await slowUpload;
+  assert(page.get('avatar-status').textContent.includes('可能已保存'));
+  assert(!page.get('avatar-save').disabled);
+  console.log('Frontend: progress, avatars, raw upload, preview, validation, retry, timeout and auth passed');
 })().catch(error => { console.error(error); process.exitCode = 1; });

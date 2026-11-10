@@ -1,0 +1,14 @@
+.avatar-editor { margin-top: 22px; }
+.avatar-choose, .avatar-save, .avatar-cancel { min-height: 40px; padding: 9px 16px; border-radius: 8px; font: inherit; font-size: 13px; cursor: pointer; }
+.avatar-choose { border: 1px solid #cdd9cc; background: #f8faf5; color: #244b3b; }
+.avatar-choose:hover { background: #eaf0e4; }
+.avatar-help { margin: 12px 0 0; color: #788079; font-size: 12px; line-height: 1.8; }
+.avatar-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.avatar-save { border: 1px solid #244b3b; background: #244b3b; color: #fff; }
+.avatar-save:hover { background: #173b2b; }
+.avatar-cancel { border: 1px solid #dce5d8; background: #fff; color: #536d5b; }
+.avatar-editor button:disabled { opacity: .55; cursor: wait; }
+.avatar-status { margin: 14px 0 0; padding: 10px 12px; border-radius: 8px; background: #f4f7f0; color: #536d5b; font-size: 12px; line-height: 1.8; overflow-wrap: anywhere; }
+.avatar-status[data-state="error"] { background: #fff1ed; color: #a03f2b; }
+.avatar-status[data-state="success"] { background: #eaf4e8; color: #315e43; }
+.user-avatar[data-preview="true"] { box-shadow: 0 0 0 2px #8bbca6; }

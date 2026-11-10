@@ -6,8 +6,30 @@ window.JiaoSession = (() => {
   let logoutBound = false;
 
   const element = id => document.getElementById(id);
+  const defaultAvatar = '/avaters/commen_path.png';
   const roleName = role => ['teacher', '教师', '老师'].includes(role) ? '教师'
     : (['student', '学生'].includes(role) ? '学生' : '用户');
+
+  function avatarUrl(user) {
+    const value = user && (user.avatar_url || user.avatar || user.avater);
+    if (typeof value !== 'string') return defaultAvatar;
+    // 兼容后端返回的 ./wwwroot/avaters/... 磁盘路径。
+    const url = value.replace(/^(?:\.\/|\/)?wwwroot\//, '/');
+    return /^\/avaters\/(?:\d+|commen_path)\.png$/.test(url) ? url : defaultAvatar;
+  }
+
+  function renderAvatar(target, user) {
+    if (!target) return;
+    const img = document.createElement('img');
+    img.alt = '';
+    const url = avatarUrl(user);
+    img.src = url === defaultAvatar ? url : url + '?v=' + Date.now();
+    img.onerror = () => {
+      img.onerror = null;
+      img.src = defaultAvatar;
+    };
+    target.replaceChildren(img);
+  }
 
   async function request(url, options = {}) {
     const controller = new AbortController();
@@ -58,7 +80,7 @@ window.JiaoSession = (() => {
     const name = user.name || user.idcount;
     element('session-name').textContent = name;
     element('session-name').title = user.idcount;
-    element('session-avatar').textContent = Array.from(name.trim())[0] || '我';
+    renderAvatar(element('session-avatar'), user);
     element('session-role').textContent = roleName(user.identity);
     element('session-info').hidden = false;
     const active = element('active-session');
@@ -126,5 +148,5 @@ window.JiaoSession = (() => {
     if (event.persisted) window.location.reload();
   });
 
-  return { init, redirectIfUnauthorized, roleName };
+  return { init, redirectIfUnauthorized, roleName, avatarUrl, renderAvatar };
 })();

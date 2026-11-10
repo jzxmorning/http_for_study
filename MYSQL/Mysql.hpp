@@ -3,10 +3,10 @@
 #include <iostream>
 #include <vector>
 #include <mysql/mysql.h>
-#include "Log.hpp"
-#include "Mutex.hpp"
-#include "userandquestions.hpp"
-#include "mysql_password.local.hpp"
+#include "../Comm/Log.hpp"
+#include "../Comm/Mutex.hpp"
+#include "../Comm/userandquestions.hpp"
+#include "../mysql_password.local.hpp"
 using namespace LogMoudle;
 const std::string host = "127.0.0.1";
 const std::string user = "root";

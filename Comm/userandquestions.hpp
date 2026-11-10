@@ -1,5 +1,7 @@
 #pragma once
 #include <cctype>
+#include <cstdint>
+#include <ctime>
 #include <iostream>
 #include <boost/algorithm/string.hpp>
 #include <string>
